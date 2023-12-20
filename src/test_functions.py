@@ -1,5 +1,7 @@
 # Unit tests
 
+import time
+
 from functions import square, cube
 
 def test_square():
@@ -18,4 +20,5 @@ def test_cube():
     
     num = 3
     result = cube(num)
+    time.sleep(10)
     assert result == num ** 3

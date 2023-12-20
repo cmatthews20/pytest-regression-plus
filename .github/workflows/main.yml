@@ -25,11 +25,12 @@ jobs:
           python -m pip install pytest
           pip install pytest-xdist
 
-      - name: Open Test Source Dir
-        run: cd src
-
       - name: Run Tests
-        run: python -m pytest
+        run: |
+          cd src
+          python -m pytest
 
       - name: Run Tests in Parallel
-        run: python -m pytest -n 4
+        run: |
+          cd src
+          python -m pytest -n 4

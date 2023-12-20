@@ -49,7 +49,7 @@ can also provide a dir, file, or specific test for pytest if you dont want to us
 
 for specific test:
 
-```pytest tests.py::test_square```
+```pytest test_functions.py::test_square```
 
 substring matching. will deselect all tests that cant match with the string provided after the -k flag. This functionality allows for the implicit categorization of tests by their (function) name.
 
@@ -64,3 +64,13 @@ append "collect only" arg to end of pytest command. it will print the hierarchy 
 ```pytest --collect-only```
 
 ## 2 test classes
+
+previously we were looking at standalone test functions. Standalone tests are prefectly fine - but often it is convenient to group tests together with a function they rely upon and/or related data members. Test classes can also be used simply to group related tests. Therefore, test classes must be considered. A test class would allow us to factor out the 5 from each test function for square and cube. Test classes also must be prefixed with "Test". If the prefix is not there, pytest will not look at the members of the class. Please note that the test classes do not share the exact same space in memory for a shared data member such as `num`. Each test will get its own instance of the data. This is by design. It is not desirable for tests to be interacting with eachother underneath the hood. Tests must remain independent.
+
+test selection works the same with classes as it does with standalone tests.
+
+for specific test:
+
+```pytest test_classes.py::TestClass::test_square_class```
+
+## 3 skipping tests

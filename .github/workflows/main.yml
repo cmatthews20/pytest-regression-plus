@@ -1,0 +1,19 @@
+name: Cloud Automated Tests
+
+on: 
+  push:
+    branches: [main]
+
+jobs:
+  workflow:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+        
+      - name: Open Test Source Folder
+        run: cd src
+
+      - name: Run Tests
+        run: pytest

@@ -11,6 +11,7 @@ def test_square():
 
     num = 5
     result = square(num)
+    time.sleep(5)
     assert result == num ** 2
 
 def test_cube():
@@ -20,5 +21,5 @@ def test_cube():
     
     num = 3
     result = cube(num)
-    time.sleep(10)
+    time.sleep(5)
     assert result == num ** 3

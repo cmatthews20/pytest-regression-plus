@@ -1,25 +1,18 @@
-# Unit tests
-
-import time
+import pytest
 
 from functions import square, cube
 
-def test_square():
-    """
-    Unit test for square function
-    """
-
+@pytest.mark.skip
+def test_square_skip():
     num = 5
     result = square(num)
-    # time.sleep(5)
     assert result == num ** 2
 
 def test_cube():
     """
     Unit test for cube function
     """
-    
+    pytest.skip() # skip test during execution
     num = 3
     result = cube(num)
-    # time.sleep(5)
     assert result == num ** 3

@@ -74,3 +74,36 @@ for specific test:
 ```pytest test_classes.py::TestClass::test_square_class```
 
 ## 3 skipping tests
+
+Sometimes, a developer may want to skip certain tests. Therefore, it would be convenient if this was enabled at the code level. This would remove the need to customize the pytest commands in order to skip tests. Pytest includes several ways to do this.
+
+One way to skip tests, is with the `@pytest.mark.skip` decorator. Pytest must be imported to do this. After collection, at the execution stage, the decorator indicates to pytest that this test should not be run.
+
+When running test_skip.py, we see that the yellow s in the command line indicates it has been skipped as intended.
+
+Just as this marker can be added to standalone test functions, it can be added to other test structures, such as test classes. The marker can also be applied to test functions within a class to skip certain functions within a class, while allowing the other test functions within the class to run. To avoid redundant code, this will not be demonstrated with classes. The simplest use cases will be demonstrated in order to reduce complexity while moving towards the solution.
+
+Instead of skipping a test prior to execution, there may be cases where tests should be skipped during execution. I.e. a codepath that isnt implemented is reached; instead of failing the test, or issuing a pseudo-pass, it can be skipped by calling/envoking `pytest.skip()`. This will skip the test and mark it accordingly during execution. This differs from the previous method in code as well, since the skip is taking place within the test body, not just as a function/class decorator.
+
+When a test is skipped, it is important to document why a particular test was skipped. This will ensure any developers (including the author) does not return to the codebase wondering why certain tests were skipped. This can be accomplished by passing a `reason` parameter to the skip decorator as seen below:
+
+`@pytest.mark.skip(reason="skipped test because...")`
+
+By default, this reason is now shown in the output when the tests are run. You can specifiy an increased verbosity in the command line by adding the `-rs` flag (s indicating extra info for skipped tests). Passing this flag will print the skip reason when invoking tests.
+
+Unconditionally skipping tests is not sufficient. Utilizing a slightly different decorator grants the possibility of conditionally skipping tests.
+
+```
+import sys
+import pytest
+@pytest.mark.skipif(sys.version_info > (3,6), reason="Test required python version <= 3.6")
+...
+```
+
+The skipif decorator will skip the test if the condition passed evaluates to TRUE. A reason is required for skipif decorators. This is just good practice regardless. 
+
+Tests in a certain file can also be skipped based on the success of a package import. Please see the pytest documentation for more information. This method is not covered, as it does not assist the purpose of the report and is outside of the scope. It does assist overall code quality/robustness, but does not assist the devlopment of parallelized regression tests (for scope we can say that only the relevant features of pytest will be covered to avoid overcomplication, restating the documentation, or involving irrelevant material).
+
+## 4 xfail tests
+
+How to deal with tests that cannot succeed?

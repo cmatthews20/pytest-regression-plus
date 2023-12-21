@@ -106,4 +106,8 @@ Tests in a certain file can also be skipped based on the success of a package im
 
 ## 4 xfail tests
 
-How to deal with tests that cannot succeed?
+How to deal with tests that cannot succeed? There may be tests that fail that we still want to execute. I.e. when testing a specific failure codepath (want to make sure the code is doing the correct thing, even in the case of a failure)
+
+***skipped***
+
+## 5 parameterizing tests

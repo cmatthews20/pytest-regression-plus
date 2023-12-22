@@ -17,6 +17,11 @@ test variants instead of repeated code
 
 Mention requirements and versions used for pytest, xdist, python, pip, time, etc
 
+get the snippet from bob snap
+
+cant test hw <-> sw. make the connection between randomization and the wrapper being created.
+
+
 ## Executive Summary
 
 ## Purpose
@@ -25,7 +30,7 @@ The purpose of this report is multifaceted. First, pytest, a Python testing fram
 
 ## Scope
 
-The tools investigated in this report have many features. This report does not comprehensively cover those features; only those necessary to create hardware regression suites are explained and mentioned. This report assumes the reader has a preliminary understanding of Python (or an equivalent language for reading purposes), modern coding practices, and pure software testing. By extension, this report also assumes the reader has a basic understanding of command line interfaces, CI/CD (Continuous Integration/Continuous Delivery) workflows, and how to use a terminal/console/shell.
+The tools investigated in this report have many features. This report does not comprehensively cover those features; only those necessary to create hardware regression suites are explained and mentioned. Although a light introcuction to pytest is provided, this report assumes the reader has a preliminary understanding of Python (or an equivalent language for reading purposes), modern coding practices, and pure software testing. By extension, this report also assumes the reader has a basic understanding of command line interfaces, CI/CD (Continuous Integration/Continuous Delivery) workflows, and how to use a terminal/console/shell.
 
 ## Conclusion
 

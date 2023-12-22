@@ -1,3 +1,21 @@
+## Executive Summary
+
+It takes roughly two years and several billion dollars for semiconductor companies to tape-out a new chip. It is important for these companies to thoroughly test and validate their designs. Tools for physical modelling and simulation already exist, such as MATLAB, Ansys, Autodesk, among others. However, the need to extend beyond physical simulation is present. As it stands, these companies need to wait two years for their designs to be implemented, and only then be able to test the algorithms on them. This poses two problems. First; the algorithms the hardware was written for have never been tested on the chip before fabrication. There is no guarantee, through analysis alone, that the algorithms the hardware was designed for will run efficiently. Secondly, with some algorithms, such as artificial intelligence, evolving by the month, semiconductor companies need to inform their designs with perfomance feedback in much shorter intervals than two years. 
+
+It might be easy to assert that these companies should write some software to mathematically calculate the power and performance of the algorithms on current hardware. From there, they could alter the design, or the algorithm to achieve the desired output. They key issue is that hardware testing and software testing is very different. Since hardware could be used for an infinite number of use cases, it is impossible to test every single input. Especially considering analog values for certain inputs, where there are an infinite number of inputs, even between 1V and 2V. To mitigate this, hardware teams will run a massive test suite, with randomized inputs, on their designs. The hope, is that within a two year span, the tests have provided sufficient coverage through randomization. Software algorithm testing, however, is normally 'directed'. There is an exact expected output for every input. Most units of software do not have nearly as many possible expected outputs as a hardware component. As a result, developers only need to test certain cases. Then, by further extension, the frameworks that the software developers have been provided, do not provide the features a hardware engineer would be accustomed to. 
+
+This is the issue this report is aiming to solve. Hardware engineers need to write software, from scratch, to simulate their designs, so they can test the efficacy of the algorithms on their hardware. However, they do not have the testing frameworks needed to test software like they would test hardware. A framework that these hardware engineers could use, at minimum, would require randomization support. Additionally, due to the number of tests a hardware engineer is running, compared to a software engineer, the hardware engineer requires their suites to run much faster. To tackle this issue, this report investigates the feasibility of running tests in parallel, instead of sequentially. This paper hypothesizes that it is possible to create a software wrapper around several pre-existing software testing frameworks, to make it possible to test hardware algorithm simulation software with randomization and parallelization support.
+
+## Purpose
+
+The purpose of this report is multifaceted. First, pytest, a Python testing framework, is investigated to determine its suitability for testing hardware simulation software. In doing so, an extension of pytest is created, to assess its suitability during implementation. Furthermore, this report aims to justify the need for running tests in parallel and then provides experimental data from automated tests run in the cloud.
+
+## Scope
+
+The tools investigated in this report have many features. This report does not comprehensively cover those features; only those necessary to create hardware regression suites are explained and mentioned. Although a light introcuction to pytest is provided, this report assumes the reader has a preliminary understanding of Python (or an equivalent language for reading purposes), modern coding practices, and pure software testing. By extension, this report also assumes the reader has a basic understanding of command line interfaces, CI/CD (Continuous Integration/Continuous Delivery) workflows, and how to use a terminal/console/shell.
+
+Alternatives refers to ...
+
 ## 1 - Introduction to Software Testing
 
 ```pytest --help```
@@ -8,16 +26,16 @@ will want to have second test (cube) to demonstrate test selection more thorough
 
 Writing software tests is a crucial aspect of the software development process. Tests help catch and identify bugs and issues early in the development process. This makes it easier and more cost-effective to fix problems before they become more complex. Writing tests encourages the developer to write modular, maintainable, and loosely coupled code. This, in turn, leads to higher overall code quality. Tests provide a safety net when making changes or adding new features. Having a comprehensive test suite gives developers confidence that their changes won't introduce unexpected issues. With a solid set of tests, developers can refactor code with greater confidence. They can make changes to the codebase, knowing that if something breaks, the tests will catch it. Tests serve as living documentation for your code. They describe how different parts of your code should behave. This can be especially valuable when onboarding new team members or revisiting code after some time. Automated tests can be rerun quickly and easily, allowing you to perform regression testing whenever changes are made. This helps ensure that existing functionality remains intact after modifications. Tests are an integral part of CI/CD pipelines. They enable automated testing and ensure that only code that passes all tests is deployed, reducing the risk of releasing faulty software. Detecting and fixing bugs early in the development process is less expensive than addressing them later in the software development life cycle or, worse, after the software has been deployed. Tests provide a clear specification of what the code is supposed to do. This can enhance collaboration between team members, as it helps in understanding and validating each other's work. Knowing that a product has a robust set of tests can instill confidence in both development teams and end-users. It indicates a commitment to quality and reliability. Tests make it easier to maintain and update code over time. As requirements change or new features are added, tests act as a safety net, ensuring that existing functionality is not inadvertently broken.
 
-In summary, writing software tests is an investment in the quality and reliability of the software, with benefits at the code, and business level. It leads to more robust, maintainable code and provides numerous benefits throughout the development life cycle. Additionally, the organization may be be following some software development methodology that demands tests from the outset; such as Test Driven Development (TDD).
+In summary, writing software tests is an investment in the quality and reliability of the software, with benefits at the code, and business level. It leads to more robust, maintainable code and provides numerous benefits throughout the development life cycle. Additionally, the organization may be following some software development methodology that demands tests from the outset; such as Test Driven Development (TDD).
 
-So, after correctly asserting that tests are required - tests are written, put them in a test suite, and any time someone wants to make changes to the code, they must first run this test suite (and make sure all the tests are still passing). Very important for large and complex software where something may not be caught at manual inspection points such as code review, or via functional/usability quality assurance testing.
+So, after correctly asserting that tests are required - tests are written, and put them in a test suite, and any time someone wants to make changes to the code, they must first run this test suite (and make sure all the tests are still passing). Very important for large and complex software where something may not be caught at manual inspection points such as code review, or via functional/usability quality assurance testing.
 
 
 ### Test Frameworks
 
 Test frameworks enable a developer to design, implement, and execute tests. These frameworks typically provide additional features, as seen below:
 
-A developer does not need to use a testing framework; they can certainly write their own. However, they would be be reinventing the wheel, since a way to run the tests needs to be created. Developers want to spend more time writing tests and software, not making the functionality to run the tests. Regardless of the software, the desire to parallelize, parameterize, randomize, _, or _ often arises. Some of these features are provided by pytest. But what about the ones that are not? That is the purpose of this report. To extend pytest to cover those edge cases, and provide a written, off the shelf framework that can be used.
+A developer does not need to use a testing framework; they can certainly write their own. However, they would be reinventing the wheel, since a way to run the tests needs to be created. Developers want to spend more time writing tests and software, not making the functionality to run the tests. Regardless of the software, the desire to parallelize, parameterize, randomize, _, or _ often arises. Some of these features are provided by pytest. But what about the ones that are not? That is the purpose of this report. To extend pytest to cover those edge cases, and provide a written, off-the-shelf framework that can be used.
 
 ### Installing pytest
 
@@ -29,7 +47,7 @@ pip install -U pytest
 
 ### next
 
-tests are within python files. these files must be named a certain way. pytest only searches for tests in files with "test" in the name *by default*. This is also true for function names. Funcs without "test" in the name, will not be considered as tests by the framework. Funcs that are considered to be tests, are actually just end up being run by the framework.
+tests are within Python files. these files must be named a certain way. pytest only searches for tests in files with "test" in the name *by default*. This is also true for function names. Funcs without "test" in the name, will not be considered as tests by the framework. Funcs that are considered to be tests are run by the framework.
 
 (make a note categorizing the sample tests as unit tests. define unit tests.)
 
@@ -39,7 +57,7 @@ the tests are using a hardcoded number, calling square, getting the result, and 
 
 ### what constitutes a passed test?
 
-if a test gets to the end with no errors, it is considered a pass. note that a failed assert results in an error, and the test is marked as a failed test. this is not the only failure that can arise. calls to functions or any external resource for example would qualify. 
+if a test gets to the end with no errors, it is considered a pass. Note that a failed assert results in an error, and the test is marked as a failed test. this is not the only failure that can arise. calls to functions or any external resource for example would qualify. 
 
 ### Running and Selecting Tests
 
@@ -49,7 +67,9 @@ run the pytest executable that was installed previously.
 
 call pytest on the command line without any arguments: by default, starts in working dir, and searches recursively in sub dirs to find available tests, and run all of them.
 
-can also provide a dir, file, or specific test for pytest if you dont want to use the working dir.
+run with -s since pytest wants to hide a lot of output to keep things clean
+
+can also provide a dir, file, or specific test for pytest if you do not want to use the working dir.
 
 ```bash
 # Run all tests
@@ -208,6 +228,106 @@ def test_square_param(num):
 
 ## 6 Test Fixtures
 
-To address the broadcasting, issue, we can write a fixture to do so.
+It is often the case that developers want to perform some initialization of their test functions. This initialiozation should not take place in the body of the tests. This avoids cluttering the test bodies, and avoids repeated code in the case that the same initialization should take place in several tests. To address the broadcasting, issue, we must write a fixture. A fixture with a session-wide scope will enable us to broadcase the same random value to each test, allowing the parallelization to take place. The `autouse=True` flag within the fixture decorator has been purposely avoided. We want to broadcase the same value. Autouse would cause the fixture to run at the beginning of each run, which would pose the same issue with the built in parametrize decorator. However, this flag would be very useful for logging at the beginning of each test.
 
-Its often the case that developers want to perform some initialization of their test functions. This initialiozation should not take place in the body of the tests. This avoids cluttering the test bodies, and avoids repeated code in the case that the same initialization should take place in several tests.
+```python
+@pytest.fixture(scope="session")
+def rand_val():
+    rand_int = random.randint(1, 10)
+    return rand_int
+
+def test_square_param(rand_val):
+    print(rand_val)
+    result = square(rand_val)
+    assert result == rand_val ** 2
+```
+
+Running the following on the command line will enable the developer to see what fixures are available to them. This command should be known by developers who use this wrapper - in the next session, fixtures will be provided implicitly.
+
+```bash
+pytest --fixtures [pathname]
+```
+
+# Configuring a Test File
+
+This section covers the creation of a `conftest.py` file to complete the wrapper. Developers using this framework wrapper will want to use the fixture throughout their suites. It does not make sense to repeat code for tests in different files that want to use the same fixture. This is where the test configuration file comes in. This file should be created so no refactors are needed when tests are written (no import needed so test files do not need to be modified). This file style can be duplicated in different directories. pytest can decipher which to use based on the location of the file relative to the tests (tests will use the conftest within their directory). This is useful when a developer wants to overload a function without having to be worried about orchestrating the use of the correct function where it is called.
+
+```python
+# conftest.py
+
+@pytest.fixture(scope="session")
+def rand_val_10():
+    rand_int = random.randint(1, 10)
+    return rand_int
+
+@pytest.fixture(scope="session")
+def rand_val_20():
+    rand_int = random.randint(1, 20)
+    return rand_int
+
+# ...
+```
+
+## data forwarding skipped
+
+## indirect skipped
+
+## yield skipped
+
+developers will need tear-down functionality.
+
+## Adding Options
+
+Using initialization hooks, command line options can be added. This is a crucial feature of the framework wrapper, as it is the mechanism that actually provides the additional functionality to the developer.
+
+Options allow the developer to control certain values of a test from the command line. This is mostly for convenience. If a developer needs to change a certain part of a test, instead of opening the file and changing the source code, they can pass a value to the command line option. An `argparse` style option will be added to the pytest parser. Running `pytest --help` will enable the developer to see the options the wrapper has added. See an example below.
+
+```python
+# in the conftest file
+def pytest_addoption(parser):
+    parser.addoption("--example", action="store", default="example string")
+
+@pytest.fixture
+def name(request):
+    return request.config.getoption("--example")
+
+# in the test file
+
+def example_test(example):
+    assert example = "pass"
+
+```
+
+
+## Dynamic Params
+
+This section will discuss dynamic parametrization. A developer may want to change how a test is parametrized at runtime or adjust the variants that exist. For this report, the number of variants needs to be adjusted. As per the last section, this will be controlled with a command line argument.
+
+Previously, tests were parametrized using a decorator. However, at this stage, it is clear that parametrization cannot be static. It must be done dynamically. This will be accomplished with another hook, `pytest_generate_tests`. This hook should be located in the conftest file, with the other fixtures. The `pytest_generate_tests` contains a `metafunc` object. This is a pytest builtin that can be leveraged to perform the dynamic parametrization, since it allows aspects of the tests to be accessed in the conftest file at runtime. This enables the creation of code that alters the tests after they are written - a crucial paradigm that does not exist in the framework alternatives.
+
+In the hook, a check ensures the fixture is present in the test. It ensures the value being parametrizes is actually being requested by the test. If the fixure is present in the test, parametrization can then take place. Run `pytest --collectonly test_dynamic_param.py` to see the variants produced.
+
+Adding a file option would further bridge the hardware-softwre testing gap, as hardware tests usually pull from a file of manual tests. These files have inputs and desired outputs and can be used to assess whether or not a system has regressed.
+
+A seeding option must be added as well. This will ensure the workers have consistently broadcasted tests. This enables the framework to work around a known limitation of xdist, as well as enabling specific test repeats.
+
+
+
+## Experiment
+
+
+
+
+## Conclusion
+
+## Recommendations
+
+To optimize the usability and adoption of the framework wrapper created herein, the inclusion of additional quality-of-life features that cater to the needs and expectations of testing engineers should be considered. Features such as enhanced test reporting, built-in mocking, an extended assertion library, and automated management of dynamic test data should be investigated.
+
+To promote accessibility and ease of integration, the framework should be installable via the Python Package Index (PyPI) using the pip package manager. Creating and uploading a package distribution on PyPI would simplify the installation process for end-users and ensure adherence to best practices for versioning and dependency management to ensure compatibility with various Python environments.
+
+Additionally, traditional software documentation for this framework wrapper should be written. This style of reporting is not commonplace for software packages, which may inhibit its adoption. As such, it should be re-styled and placed on a website with an accompanying tutorial.
+
+By incorporating these recommendations, the testing framework will meet the expectations of testing engineers and have the potential to become a valuable asset within the software development community. The availability of the framework on PyPI will further contribute to its accessibility, enabling engineers to integrate it into their projects.
+
+The experiment should also be repeated with variances in test amounts and test times.

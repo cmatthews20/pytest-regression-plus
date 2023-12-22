@@ -325,16 +325,122 @@ A seeding option must be added as well. This will ensure the workers have consis
 
 This section investigates parallelizing tests with with the `xdist` plugin. `xdist` provides alternate test execution modes. Using this plugin, the framework wrapper can instruct pytest to spawn a number of worker processes. These worker processes can only be spawned if there is a CPU avaiable, and the number of workers cannot exceed the number of available CPUs. Tests can be randomly distributed across available CPUs and run concurrently.
 
-Running traditional software tests serially is sometimes acceptable. 
+Running traditional software tests serially is sometimes acceptable. These suites rarely exceed ten minutes. However, most nightly hardware random regression suites can take upwards of two hours. A method to reduce test time must be explored. One such way, is through parallelization (concurrent execution).
 
 There are some issues to consider with parallelization. Overparallelization, for example, is possible, since each worker process is competing for the resources on the same machine. If overparallelization occurs, out-of-memory errors, for example, can occur. How many workers to use is normally evaluated on a case-by-case basis. However, an experiment can be constructed to find the optimal number of workers.
 
+```bash
+# Spawn the maximum number of workers permitted
+pytest -n auto 
+
+# Spawn 2 workers
+pytest -n 2
+```
+
+## Config files
+
+Previously, the pytest runner was configured in the command line. Remembering all these options can be cumbersome. The command line options can also be configured within the `setup.cfg` file. Some common use cases include selecting command line options to be used by default, adding new markers, and adding to the test discovery regular expression options. This would allow categorization with the following command `pytest -m custom_marker`, which would run all tests with certain markers. There are many other configuration options available.
+
+## Test profiling
+
+
+
+
 ## Experiment
 
+In order for this framework wrapper to be viable, the tests must be able to be randomizable while running in parallel. This must also be able to take place in the cloud. In order for a software system to be complete, it must have a Continuous Integration and Continuous Delivery (CI/CD) workflow/pipeline. This pipeline runs on the code repository, which is stored online.
 
+This experiment aims to prove that random tests can be run in parallel, that running them in parallel saves time, and that parallel randomized tests can be run in the cloud. To do so, the following YAML file was created. This file instructs GitHub Actions on how to setup the test environment and run the tests. GitHub Actions is a CI/CD platform that allows the build, test, and deployment pipeline to be automated. For the purposes of this experiment, only the build and test features are utilized.
+
+```yml
+name: Cloud Automated Tests
+
+on: 
+  push:
+    branches: [main]
+
+jobs:
+  workflow:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+  
+      - name: Set up Python ${{ matrix.python-version }}  
+        uses: actions/setup-python@v4  
+        with:  
+          python-version: ${{ matrix.python-version }}  
+      - name: Install dependencies  
+        run: |  
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          pip install pytest-xdist
+          pip install numpy
+
+      - name: Run Tests
+        run: |
+          cd src
+          python -m pytest
+
+      - name: Run Tests in Parallel
+        run: |
+          cd src
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 2
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 3
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 4
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 5
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 6
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 7
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 8
+
+```
+
+Most hardware tests are seeded so that they can be repeated in the case of failure. Seeding refers to keeping track of the state of the randomizer object, so that certain runs can be replicated by feeding the randomizer the same seed. Therefore, a seeding option is neccessary for hardware developers to use the framework wrapper. Additionally, due to xdist limitations, the same seed must be broadcasted to each CPU. If each CPU generates different test variants to select from, an error occurs. As seen below, a command line option for the test seed must be added. 
+
+Additionally, each test will consume one second of time to simulate a real test.
+
+To give the developer a way to amend the number of random tests to run, and to facilitate this experiment, a `num_seeds` option is also added. This will dictate how many random test variants are generated. See below the resulting python files. 
+
+```python
+# conftest.py
+import pytest
+import numpy as np
+
+def pytest_addoption(parser):
+    parser.addoption("--num_seeds", action="store", type=int, default=1)
+    parser.addoption("--seed", action="store", type=int, default=1)
+
+def pytest_generate_tests(metafunc):
+    if "rand_val" in metafunc.fixturenames:
+        list = []
+        np.random.seed(seed=metafunc.config.getoption("--seed"))
+        for i in range(metafunc.config.getoption("--num_seeds")):
+            rand_int = np.random.randint(1,100)
+            print(rand_int)
+            list.append(rand_int)
+            list.sort()
+        metafunc.parametrize("rand_val", list)
+
+# test_dynamic_param.py
+
+from functions import square
+import time
+
+def test_square_dynamic(rand_val):
+    result = square(rand_val)
+    print(rand_val)
+    time.sleep(1)
+    assert result == rand_val ** 2
+```
 
 
 ## Conclusion
+
+Pytest was determined to be a suitable candidate for running hardware-based tests in software. A framework wrapper was successfully created to facilitate these tests, with randimization and parallelization features. An experiment determined the optimal number of worker processes for parallel test runs and asserted the possibly of parallel tests in the cloud.
 
 ## Recommendations
 

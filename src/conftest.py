@@ -27,8 +27,6 @@ def pytest_addoption(parser):
     parser.addoption("--seed", action="store", type=int, default=1)
 
 def pytest_generate_tests(metafunc):
-    
-    
     if "rand_val" in metafunc.fixturenames:
         list = []
         np.random.seed(seed=metafunc.config.getoption("--seed"))

@@ -1,10 +1,20 @@
-## Executive Summary
+---
+output:
+  pdf_document
+fontsize: 12pt
+font: timesnewroman
+geometry: "left=2.54cm,right=2.54cm,top=2.54cm,bottom=2.54cm"
+---
+
+
+# Executive Summary
 
 It takes roughly two years and several billion dollars for semiconductor companies to tape-out a new chip. It is important for these companies to thoroughly test and validate their designs. Tools for physical modelling and simulation already exist, such as MATLAB, Ansys, Autodesk, among others. However, the need to extend beyond physical simulation is present. As it stands, these companies need to wait two years for their designs to be implemented, and only then be able to test the algorithms on them. This poses two problems. First; the algorithms the hardware was written for have never been tested on the chip before fabrication. There is no guarantee, through analysis alone, that the algorithms the hardware was designed for will run efficiently. Secondly, with some algorithms, such as artificial intelligence, evolving by the month, semiconductor companies need to inform their designs with perfomance feedback in much shorter intervals than two years. 
 
 It might be easy to assert that these companies should write some software to mathematically calculate the power and performance of the algorithms on current hardware. From there, they could alter the design, or the algorithm to achieve the desired output. They key issue is that hardware testing and software testing is very different. Since hardware could be used for an infinite number of use cases, it is impossible to test every single input. Especially considering analog values for certain inputs, where there are an infinite number of inputs, even between 1V and 2V. To mitigate this, hardware teams will run a massive test suite, with randomized inputs, on their designs. The hope, is that within a two year span, the tests have provided sufficient coverage through randomization. Software algorithm testing, however, is normally 'directed'. There is an exact expected output for every input. Most units of software do not have nearly as many possible expected outputs as a hardware component. As a result, developers only need to test certain cases. Then, by further extension, the frameworks that the software developers have been provided, do not provide the features a hardware engineer would be accustomed to. 
 
 This is the issue this report is aiming to solve. Hardware engineers need to write software, from scratch, to simulate their designs, so they can test the efficacy of the algorithms on their hardware. However, they do not have the testing frameworks needed to test software like they would test hardware. A framework that these hardware engineers could use, at minimum, would require randomization support. Additionally, due to the number of tests a hardware engineer is running, compared to a software engineer, the hardware engineer requires their suites to run much faster. To tackle this issue, this report investigates the feasibility of running tests in parallel, instead of sequentially. This paper hypothesizes that it is possible to create a software wrapper around several pre-existing software testing frameworks, to make it possible to test hardware algorithm simulation software with randomization and parallelization support.
+
 
 ## Purpose
 
@@ -16,13 +26,13 @@ The tools investigated in this report have many features. This report does not c
 
 Alternatives refers to ...
 
-## 1 - Introduction to Software Testing
+## 1. Introduction to Software Testing
 
 ```pytest --help```
 
 will want to have second test (cube) to demonstrate test selection more thoroughly.
 
-### Why Write Tests?
+### 1.1 Why Write Tests?
 
 Writing software tests is a crucial aspect of the software development process. Tests help catch and identify bugs and issues early in the development process. This makes it easier and more cost-effective to fix problems before they become more complex. Writing tests encourages the developer to write modular, maintainable, and loosely coupled code. This, in turn, leads to higher overall code quality. Tests provide a safety net when making changes or adding new features. Having a comprehensive test suite gives developers confidence that their changes won't introduce unexpected issues. With a solid set of tests, developers can refactor code with greater confidence. They can make changes to the codebase, knowing that if something breaks, the tests will catch it. Tests serve as living documentation for your code. They describe how different parts of your code should behave. This can be especially valuable when onboarding new team members or revisiting code after some time. Automated tests can be rerun quickly and easily, allowing you to perform regression testing whenever changes are made. This helps ensure that existing functionality remains intact after modifications. Tests are an integral part of CI/CD pipelines. They enable automated testing and ensure that only code that passes all tests is deployed, reducing the risk of releasing faulty software. Detecting and fixing bugs early in the development process is less expensive than addressing them later in the software development life cycle or, worse, after the software has been deployed. Tests provide a clear specification of what the code is supposed to do. This can enhance collaboration between team members, as it helps in understanding and validating each other's work. Knowing that a product has a robust set of tests can instill confidence in both development teams and end-users. It indicates a commitment to quality and reliability. Tests make it easier to maintain and update code over time. As requirements change or new features are added, tests act as a safety net, ensuring that existing functionality is not inadvertently broken.
 
@@ -311,7 +321,13 @@ Adding a file option would further bridge the hardware-softwre testing gap, as h
 
 A seeding option must be added as well. This will ensure the workers have consistently broadcasted tests. This enables the framework to work around a known limitation of xdist, as well as enabling specific test repeats.
 
+## xdist
 
+This section investigates parallelizing tests with with the `xdist` plugin. `xdist` provides alternate test execution modes. Using this plugin, the framework wrapper can instruct pytest to spawn a number of worker processes. These worker processes can only be spawned if there is a CPU avaiable, and the number of workers cannot exceed the number of available CPUs. Tests can be randomly distributed across available CPUs and run concurrently.
+
+Running traditional software tests serially is sometimes acceptable. 
+
+There are some issues to consider with parallelization. Overparallelization, for example, is possible, since each worker process is competing for the resources on the same machine. If overparallelization occurs, out-of-memory errors, for example, can occur. How many workers to use is normally evaluated on a case-by-case basis. However, an experiment can be constructed to find the optimal number of workers.
 
 ## Experiment
 
@@ -331,3 +347,5 @@ Additionally, traditional software documentation for this framework wrapper shou
 By incorporating these recommendations, the testing framework will meet the expectations of testing engineers and have the potential to become a valuable asset within the software development community. The availability of the framework on PyPI will further contribute to its accessibility, enabling engineers to integrate it into their projects.
 
 The experiment should also be repeated with variances in test amounts and test times.
+
+These features are included in the code release, but not explained in this report. This was intentional, to avoid scope creep of this report and bearing in mind the length required for this deliverable. (maybe this is a letter of transmittal thing)

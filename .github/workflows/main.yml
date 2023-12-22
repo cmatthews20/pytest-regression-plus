@@ -34,4 +34,4 @@ jobs:
       - name: Run Tests in Parallel
         run: |
           cd src
-          python -m pytest -n 4
+          python -m pytest -n auto

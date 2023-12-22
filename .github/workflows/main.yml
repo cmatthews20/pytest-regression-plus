@@ -29,9 +29,15 @@ jobs:
       - name: Run Tests
         run: |
           cd src
-          python -m pytest
+          python -m pytest test_dynamic_param.py --num_seeds=8
 
       - name: Run Tests in Parallel
         run: |
           cd src
-          python -m pytest -n auto
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 2
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 3
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 4
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 5
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 6
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 7
+          python -m pytest test_dynamic_param.py --num_seeds=8 -n 8

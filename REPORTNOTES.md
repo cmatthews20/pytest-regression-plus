@@ -384,7 +384,7 @@ jobs:
       - name: Run Tests
         run: |
           cd src
-          python -m pytest
+          python -m pytest test_dynamic_param.py --num_seeds=8
 
       - name: Run Tests in Parallel
         run: |

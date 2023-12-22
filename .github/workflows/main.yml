@@ -34,8 +34,8 @@ jobs:
       - name: Run Tests in Parallel
         run: |
           cd src
-          python -m pytest test_dynamic_param.py --num_seeds=25 -n 10
-          python -m pytest test_dynamic_param.py --num_seeds=25 -n 20
-          python -m pytest test_dynamic_param.py --num_seeds=25 -n 30
-          python -m pytest test_dynamic_param.py --num_seeds=25 -n 40
-          python -m pytest test_dynamic_param.py --num_seeds=25 -n 50
+          python -m pytest test_dynamic_param.py --num_seeds=100 -n 10
+          python -m pytest test_dynamic_param.py --num_seeds=100 -n 20
+          python -m pytest test_dynamic_param.py --num_seeds=100 -n 30
+          python -m pytest test_dynamic_param.py --num_seeds=100 -n 40
+          python -m pytest test_dynamic_param.py --num_seeds=100 -n 50

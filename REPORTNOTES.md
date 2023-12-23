@@ -384,18 +384,12 @@ jobs:
       - name: Run Tests
         run: |
           cd src
-          python -m pytest test_dynamic_param.py --num_seeds=8
+          python -m pytest test_dynamic_param.py --num_seeds=?
 
       - name: Run Tests in Parallel
         run: |
           cd src
-          python -m pytest test_dynamic_param.py --num_seeds=8 -n 2
-          python -m pytest test_dynamic_param.py --num_seeds=8 -n 3
-          python -m pytest test_dynamic_param.py --num_seeds=8 -n 4
-          python -m pytest test_dynamic_param.py --num_seeds=8 -n 5
-          python -m pytest test_dynamic_param.py --num_seeds=8 -n 6
-          python -m pytest test_dynamic_param.py --num_seeds=8 -n 7
-          python -m pytest test_dynamic_param.py --num_seeds=8 -n 8
+          python -m pytest test_dynamic_param.py --num_seeds=? -n ?
 
 ```
 
@@ -436,6 +430,12 @@ def test_square_dynamic(rand_val):
     time.sleep(1)
     assert result == rand_val ** 2
 ```
+
+Before analyzing the data, it is important to note that setting up a worker process consumes a non-negligible, variable amount of time. It is assumed that the optimal number of workers depends on the number of tests being run and the length of each test. This experiment is run across the three latest python versions, each with sequential run control groups. 
+
+## Results
+
+See the appendices for the tabularized results from each run. At first approach of the problem, one could lazily assume that the optimal number of workers is as many as possible. 
 
 
 ## Conclusion

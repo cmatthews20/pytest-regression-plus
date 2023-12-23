@@ -29,13 +29,14 @@ jobs:
       - name: Run Tests
         run: |
           cd src
-          python -m pytest test_dynamic_param.py --num_seeds=25
+          python -m pytest test_dynamic_param.py --num_seeds=10
 
       - name: Run Tests in Parallel
         run: |
           cd src
-          python -m pytest test_dynamic_param.py --num_seeds=20 -n 2
-          python -m pytest test_dynamic_param.py --num_seeds=20 -n 4
-          python -m pytest test_dynamic_param.py --num_seeds=20 -n 8
-          python -m pytest test_dynamic_param.py --num_seeds=20 -n 10
-          python -m pytest test_dynamic_param.py --num_seeds=20 -n 12
+          python -m pytest test_dynamic_param.py --num_seeds=10 -n 2
+          python -m pytest test_dynamic_param.py --num_seeds=10 -n 4
+          python -m pytest test_dynamic_param.py --num_seeds=10 -n 8
+          python -m pytest test_dynamic_param.py --num_seeds=10 -n 10
+          python -m pytest test_dynamic_param.py --num_seeds=10 -n 15
+          python -m pytest test_dynamic_param.py --num_seeds=10 -n 20

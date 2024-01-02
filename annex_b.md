@@ -1,4 +1,14 @@
-Summarized results
+---
+output:
+  pdf_document
+fontsize: 12pt
+font: timesnewroman
+geometry: "left=2.54cm,right=2.54cm,top=2.54cm,bottom=2.54cm"
+---
+
+# Annex B - Tabulated Results
+
+Key: Time (Parallel) / Time (Sequential)
 
 Test Length = 1s
 
@@ -50,7 +60,6 @@ Test Length = 1s
 
 Test Length = 5s
 
-
 |Python Version|No. Tests | No. Workers | Time (s) |
 |--:|---|---|---|
 |3.10 | 25 | 2 |50.56 / 100.19|
@@ -86,3 +95,4 @@ Test Length = 5s
 |3.12 | 10 | 10|7.59|
 |3.12 | 10 | 15|8.87|
 |3.12 | 10 | 20|10.23|
+

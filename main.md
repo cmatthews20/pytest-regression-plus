@@ -8,7 +8,7 @@ geometry: "left=2.54cm,right=2.54cm,top=2.54cm,bottom=2.54cm"
 
 # 1 - Introduction
 
-It takes roughly two years and several billion dollars for semiconductor companies to design and fabricate a new computer chip [1]. It is important for these companies to thoroughly test and validate their designs. Tools for physical modeling and simulation already exist, such as MATLAB, Ansys, and Autodesk, among others [2]. However, the need to extend beyond physical simulation is present. As it stands, these companies need to wait two years for their designs to be implemented, and only then are they able to test the algorithms on them. This poses two problems. First; the algorithms the hardware was written for will have never been tested on the chip before fabrication. There is no guarantee, through analysis alone, that the algorithms the hardware was designed for will run efficiently. Secondly, with some algorithms, such as artificial intelligence, evolving by the month, semiconductor companies need to inform their designs with performance feedback in much shorter intervals. 
+It takes roughly two years and several billion dollars for semiconductor companies to design and fabricate a new computer chip [1]. It is important for these companies to thoroughly test and validate their designs. Tools for physical modeling and simulation already exist, such as MATLAB, Ansys, and Autodesk, among others [2]. However, the need to extend beyond physical simulation is present. As it stands, these companies need to wait two years for their designs to be implemented, and only then are they able to test any algorithms on them. This poses two problems. First; the algorithms the hardware was written for will have never been tested on the chip before fabrication. There is no guarantee, through analysis alone, that the algorithms the hardware was designed for will run efficiently. Secondly, with some algorithms, especially those involving artificial intelligence, are evolving by the month. Semiconductor companies need to inform their designs with performance feedback in much shorter intervals. 
 
 It might be easy to assert that these companies should write some software to mathematically calculate the power and performance of the algorithms on current hardware. From there, they could alter the design, or the algorithm to achieve the desired output. The key issue is that hardware testing and software testing is very different. Since hardware could be used for a theoretically infinite number of use cases, it is impossible to test every single input. To mitigate this, hardware teams will run a massive test suite, with randomized inputs, on their designs [3]. The hope is that within two years, the tests have provided sufficient coverage through randomization. Software algorithm testing, however, is normally 'directed'. There is an exact expected output for every input. Most units of software do not have nearly as many possible expected outputs as a hardware component. As a result, developers only need to test certain cases. Then, by further extension, the frameworks that the software developers have been provided, do not provide the features a hardware engineer would be accustomed to [3]. 
 
@@ -21,21 +21,21 @@ The purpose of this report is multifaceted. First, `pytest`, a Python testing fr
 
 ## 1.2 - Scope
 
-The tools investigated in this report have many features. This report does not comprehensively cover those features; only those necessary to create hardware regression suites are explained and mentioned. Only the relevant features of `pytest` will be covered to avoid overcomplication, restating the documentation, or involving irrelevant material. Although a light introduction to `pytest` is provided, this report assumes the reader has a preliminary understanding of Python (or an equivalent language for reading purposes), modern coding practices, and software testing. By extension, this report also assumes the reader has a basic understanding of command line interfaces, CI/CD (Continuous Integration/Continuous Delivery) workflows, and how to use a terminal/console/shell. The report often refers to software testing alternatives. For the purpose of this report, the scope of these alternatives is limited to PyUnit, Nose2, Robot, Testify, DocTest, and Robot [4].
+The tools investigated in this report have many features. This report does not comprehensively cover those features; only those necessary to create hardware regression suites are explained and mentioned. Only covering the relevant features will avoid overcomplication, restating the documentation, or involving irrelevant material. Although a light introduction to `pytest` is provided, this report assumes the reader has a preliminary understanding of Python (or an equivalent language for reading purposes), modern coding practices, and software testing. More specifically, this report also assumes the reader has a basic understanding of command line interfaces, CI/CD (Continuous Integration/Continuous Delivery) workflows, and how to use a terminal/console/shell. The report often refers to software testing alternatives. For the purpose of this report, these alternatives are limited to PyUnit, Nose2, Robot, Testify, DocTest, and Robot [4].
 
 # 2 - Software Testing
 
 ## 2.1 - Why Write Tests
 
-Writing software tests is a crucial aspect of the software development process. Tests help catch and identify bugs and issues early in the development process. This makes it easier and more cost-effective to fix problems before they become more complex. Writing tests encourage the developer to write modular, maintainable, and loosely coupled code. This, in turn, leads to higher overall code quality. Tests provide a safety net when making changes or adding new features. Having a comprehensive test suite gives developers confidence that their changes won't introduce unexpected issues. With a solid set of tests, developers can refactor code with greater confidence. They can make changes to the codebase, knowing that if something breaks, the tests will catch it. Tests also serve as living documentation for the codebase. They describe how different parts of the code should behave. This can be especially valuable when onboarding new team members or revisiting code after some time. Automated tests can be rerun quickly and easily, allowing you to perform regression testing whenever changes are made. This helps ensure that existing functionality remains intact after modifications. Knowing that a product has a robust set of tests can instill confidence in both development teams and end-users. As requirements change or new features are added, tests act as a safety net, ensuring that existing functionality is not inadvertently broken [5].
+Writing software tests is a crucial aspect of the software development process. Tests help catch and identify bugs and issues early in the development process. This makes it easier and more cost-effective to fix problems before they become more complex. Writing tests encourage the developer to write modular, maintainable, and loosely coupled code. This, in turn, leads to higher overall code quality. Tests provide a safety net when making changes or adding new features. With a solid set of tests, developers can refactor code with greater confidence. Tests also serve as living documentation for the codebase. They describe how different parts of the code should behave. This can be especially valuable when onboarding new team members or revisiting code after some time. Automated tests can be rerun quickly and easily, allowing the developer to perform regression testing whenever changes are made. This helps ensure that existing functionality remains intact after modifications. Knowing that a product has a robust set of tests can instill confidence in both development teams and end-users. As requirements change or new features are added, tests act as a safety net, ensuring that existing functionality is not inadvertently broken [5].
 
-In summary, writing software tests is an investment in the quality and reliability of the software, with benefits at the code, and business level. It leads to more robust, maintainable code and provides numerous benefits throughout the development life cycle. Additionally, the organization may be following some software development methodology that demands tests from the outset; such as Test Driven Development (TDD) [6].
+Writing software tests is an investment in the quality and reliability of the software, with benefits at the code, and business level. It leads to more robust, maintainable code and provides numerous benefits throughout the development life cycle. Additionally, the organization may be following some software development methodology that demands tests from the outset; such as Test Driven Development (TDD) [6].
 
 After correctly asserting that tests are required - tests are written, and placed in a test suite, and any time someone wants to make changes to the code, they must first run this test suite (and make sure all the tests are still passing). This is very important for large and complex software where something may not be caught at manual inspection points such as code review, or through quality assurance testing.
 
 ## 2.2 - Test Frameworks
 
-Test frameworks enable a developer to design, implement, and execute tests. These frameworks typically provide additional features, such as test case structures, test runners, test reporting, and setup/teardown mechanisms [7]. A developer does not need to use a testing framework; they can certainly write their own. However, they would be 'reinventing the wheel', since a way to run the tests needs to be created. Developers want to spend more time writing tests and software, not making the functionality to run the tests. Regardless of the software, the desire to parallelize, parameterize, or randomize often arises. Some of these features are provided by `pytest`. The purpose of this section is to extend `pytest` to create the features that are not provided and yield a written, off-the-shelf framework that can be used.
+Test frameworks enable a developer to design, implement, and execute tests. These frameworks typically provide additional features, such as test case structures, test runners, test reporting, and setup/teardown mechanisms [7]. A developer does not need to use a testing framework; they can certainly write their own. However, they would be 'reinventing the wheel', since a way to run the tests needs to be created for each project. Developers want to spend more time writing tests and software, not making the functionality to run the tests. Regardless of the software, the desire to parallelize, parameterize, or randomize often arises. Some of these features are provided by `pytest`. The purpose of the following section is to extend `pytest` to create the features that are not provided and yield a written, off-the-shelf framework that can be used.
 
 
 # 3 - Creating the Framework Wrapper
@@ -77,7 +77,7 @@ If a test gets to the end with no errors, it is considered a pass. A failed asse
 
 ## 3.3 - Running and Selecting Tests
 
-To run the tests/suite, run the `pytest` executable. Calling `pytest` on the command line without any arguments - by default starts in working dir, searches recursively in sub-directories to find available tests, and runs all of them. The executable can be run with the `-s` flag since `pytest` wants to hide a lot of output to keep things clean. A directory, file, or specific test can also be provided to the executable
+To run the tests/suite, run the `pytest` executable. Calling `pytest` on the command line without any arguments - by default starts in working dir, searches recursively in sub-directories to find available tests, and runs all of them. The executable can be run with the `-s` flag since `pytest` wants to hide a lot of output to keep things clean. A directory, file, or specific test can also be provided to the executable.
 
 ```bash
 # Run all tests
@@ -112,7 +112,7 @@ pytest --collect-only
 
 ## 3.5 - Test Classes
 
-Previous sections discussed standalone test functions. Standalone tests are perfectly fine - but often it is convenient to group tests together with a function they rely upon and/or related data members. Test classes can also be used to group related tests. Therefore, test classes must be considered. Building on the previous example, a test class would allow the factoring out of the `num` variable from the test function. Test classes also must be prefixed with `Test`. If the prefix is not there, `pytest` will not look at the members of the class. Note that the test classes do not share the same space in memory for a shared data member such as `num`. Each test will get its own instance of the data. This is by design. Tests shouldn't be interacting with each other. Tests must remain independent.
+Previous sections discussed standalone test functions. Standalone tests are perfectly fine - but often it is convenient to group tests together with a function they rely upon and/or reusable data members. Test classes can also be used to group related tests. Building on the previous example, a test class would allow the factoring out of the `num` variable from the test function. Test classes also must be prefixed with `Test`. If the prefix is not there, `pytest` will not look at the members of the class. Note that the test classes do not share the same space in memory for a shared data member such as `num`. Each test will get its own instance of the data. This is by design. Tests shouldn't be interacting with each other and must remain independent.
 
 ```python
 class TestClass:
@@ -138,13 +138,13 @@ Just as this marker can be added to standalone test functions, it can be added t
 
 Instead of skipping a test before execution, there may be cases where tests should be skipped during execution. For example, a code path that is not implemented is reached; instead of failing the test, or issuing a pseudo-pass, it can be skipped by calling `pytest.skip()`. This will skip the test and mark it accordingly during execution. This differs from the previous method in code as well, since the skip is taking place within the test body, not just as a function/class decorator.
 
-When a test is skipped, it is important to document why a particular test was skipped. This will ensure any developers (including the author) does not return to the codebase wondering why certain tests were skipped. This can be accomplished by passing a `reason` parameter to the skip decorator as seen below:
+When a test is skipped, it is important to document why a particular test was skipped. This will ensure any developers do not return to the codebase wondering why certain tests were skipped. This can be accomplished by passing a `reason` parameter to the skip decorator as seen below:
 
 ```python
 @pytest.mark.skip(reason="skipped test because...")
 ```
 
-By default, this reason is now shown in the output when the tests are run. Increased verbosity can be specified in the command line by adding the `-rs` flag. Passing this flag will print the skip reason when invoking tests. Unconditionally skipping tests is not sufficient. Utilizing a slightly different decorator grants the possibility of conditionally skipping tests. The `skipif` decorator will skip the test if the condition passed evaluates to `TRUE`. A reason is required for `skipif` decorators.
+By default, this reason is not shown in the output when the tests are run. Increased verbosity can be specified in the command line by adding the `-rs` flag. Passing this flag will print the skip reason when invoking tests. In normal circumstances, unconditionally skipping tests is not sufficient. Utilizing a slightly different decorator grants the possibility of conditionally skipping tests. The `skipif` decorator will skip the test if the condition passed evaluates to `TRUE`. A reason is required for `skipif` decorators.
 
 ```python
 import sys
@@ -153,7 +153,7 @@ import pytest
 # ...
 ```
 
-Tests in a certain file can also be skipped based on the success of a package import. Please see the `pytest` documentation for more information. This method is not covered, as it does not assist the purpose of the report and is outside of the scope. It does assist overall code quality/robustness but does not assist the development of parallelized regression tests.
+Tests in a certain file can also be skipped based on the success of a package import. Please see the `pytest` documentation for more information. This method is not covered, as it does not assist the purpose of the report and is outside of the scope. It does assist overall code quality and robustness, however.
 
 ## 3.7 - Parameterizing Tests
 
@@ -223,7 +223,7 @@ def test_square(num):
 
 ## 3.8 - Test Fixtures
 
-It is often the case that developers want to perform some initialization of their test functions. This initialization should not take place in the body of the tests. This avoids cluttering the test bodies and avoids repeated code in the case that the same initialization should take place in several tests. To address the broadcasting issue, we must write a fixture. A fixture with a session-wide scope will enable us to broadcast the same random value to each test, allowing the parallelization to take place. The `autouse=True` flag within the fixture decorator has been purposely avoided. We want to broadcast the same value. Autouse would cause the fixture to run at the beginning of each run, which would pose the same issue with the built-in parametrize decorator. However, this flag would be very useful for logging at the beginning of each test.
+It is often the case that developers want to perform some initialization of their test functions. This initialization should not take place in the body of the tests. This avoids cluttering the test bodies and avoids repeated code in the case that the same initialization should take place in several tests. To address the broadcasting issue, a fixture must be used. A fixture with a session-wide scope will enable a broadcast of the same random value to each test, allowing the parallelization to take place. The `autouse=True` flag within the fixture decorator has been purposely avoided to broadcast the same value. Autouse would cause the fixture to run at the beginning of each run, which would pose the same issue with the built-in parametrize decorator. However, this flag would be very useful for logging at the beginning of each test.
 
 ```python
 @pytest.fixture(scope="session")
@@ -237,7 +237,7 @@ def test_square_param(rand_val):
     assert result == rand_val ** 2
 ```
 
-Running the following on the command line will enable the developer to see what fixures are available to them. This command should be known by developers who use this wrapper - in the next session, fixtures will be provided implicitly.
+Running the following on the command line will enable the developer to see what fixures are available to them. This command should be known by developers who use this wrapper.
 
 ```bash
 pytest --fixtures [pathname]
@@ -323,7 +323,7 @@ pytest -n 2
 
 Running traditional software tests serially is sometimes acceptable. These suites rarely exceed ten minutes [3]. However, most nightly hardware random regression suites can take upwards of two hours [3]. A method to reduce test time must be explored. One such way, is through parallelization (concurrent execution).
 
-There are some issues to consider with parallelization. Overparallelization, for example, is possible, since each worker process is competing for the resources on the same machine. If over-parallelization occurs, out-of-memory errors, for example, can occur. How many workers to use is normally evaluated on a case-by-case basis. However, an experiment can be constructed to find the optimal number of workers.
+There are some issues to consider with parallelization. Overparallelization, for example, is possible, since each worker process is competing for the resources on the same machine. If over-parallelization occurs, out-of-memory errors, among others, can occur. However, an experiment can be constructed to find the optimal number of workers.
 
 ## 3.13 - Setup File
 
